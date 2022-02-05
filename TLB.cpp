@@ -12,12 +12,12 @@ void TLB::remove_lru_page()
 	assert(vpn_to_pfn.size() != 0 && "TLB: remove_lru_page: vpn_to_pfn is empty");
 	assert(lru_queue.size() != 0 && "TLB: remove_lru_page: lru_queue is empty");
 
-	unsigned int lru_page = lru_queue.front();
+	uint64_t lru_page = lru_queue.front();
 	lru_queue.pop_front();
 	vpn_to_pfn.erase(lru_page);
 }
 
-void TLB::insert(unsigned int vpn, unsigned int pfn)
+void TLB::insert(uint64_t vpn, uint64_t pfn)
 {
 	/*
 	 * Since page was already present in TLB map controller should have
@@ -32,12 +32,12 @@ void TLB::insert(unsigned int vpn, unsigned int pfn)
 	vpn_to_pfn[vpn] = pfn;
 }
 
-bool TLB::is_page_present(unsigned int vpn)
+bool TLB::is_page_present(uint64_t vpn)
 {
 	return vpn_to_pfn.find(vpn) != vpn_to_pfn.end();
 }
 
-unsigned int TLB::get_pfn(unsigned int vpn)
+uint64_t TLB::get_pfn(uint64_t vpn)
 {
 	/*
 	 * TLB controller should have checked is_page_present before calling

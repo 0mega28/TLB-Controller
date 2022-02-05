@@ -11,10 +11,10 @@ private:
 	std::size_t tlb_size;
 
 	/* UMap cache to store mapping from Virtual Page Number to Physical Frame Number */
-	std::unordered_map<unsigned int, unsigned int> vpn_to_pfn;
+	std::unordered_map<uint64_t, uint64_t> vpn_to_pfn;
 
 	/* Queue to store the LRU order of the pages <vpn> */
-	std::list<unsigned int> lru_queue;
+	std::list<uint64_t> lru_queue;
 
 	/* Remove least recently used page from lru_queue and vpn_to_pfn */
 	void remove_lru_page();
@@ -24,11 +24,11 @@ public:
 	~TLB();
 
 	/* Insert a new mapping from Virtual Page Number to Physical Frame Number */
-	void insert(unsigned int vpn, unsigned int pfn);
+	void insert(uint64_t vpn, uint64_t pfn);
 
 	/* Checks if Virtual Page Number is present */
-	bool is_page_present(unsigned int vpn);
+	bool is_page_present(uint64_t vpn);
 
 	/* Returns the Physical Frame Number of the Virtual Page Number */
-	unsigned int get_pfn(unsigned int vpn);
+	uint64_t get_pfn(uint64_t vpn);
 };
