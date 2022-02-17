@@ -7,6 +7,8 @@ TLB::TLB(std::size_t tlb_size)
 	this->tlb_size = tlb_size;
 }
 
+TLB::~TLB() {}
+
 void TLB::remove_lru_page()
 {
 	assert(vpn_to_pfn.size() != 0 && "TLB: remove_lru_page: vpn_to_pfn is empty");

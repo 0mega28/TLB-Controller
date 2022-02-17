@@ -7,22 +7,28 @@
 
 TLBController::TLBController()
 {
-	tlb = TLB(tlb_size);
-	pageTable = PageTable();
+	tlb = new TLB(tlb_size);
+	pageTable =new PageTable();
+}
+
+TLBController::~TLBController()
+{
+	delete this->tlb;
+	delete this->pageTable;
 }
 
 uint64_t TLBController::get_pa_from_va(uint64_t va)
 {
 	uint64_t vpn = va / page_size;
 
-	if (tlb.is_page_present(vpn))
-		return tlb.get_pfn(vpn);
+	if (tlb->is_page_present(vpn))
+		return tlb->get_pfn(vpn);
 	else
 	{
 		try
 		{
-			pageTableEntry pte = pageTable.get_page_entry(va);
-			tlb.insert(vpn, pte.pfn);
+			pageTableEntry pte = pageTable->get_page_entry(va);
+			tlb->insert(vpn, pte.pfn);
 			return pte.pfn * page_size + va % page_size;
 		}
 		/*

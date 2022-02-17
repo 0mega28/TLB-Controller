@@ -7,8 +7,8 @@
 class TLBController
 {
 private:
-	TLB tlb;
-	PageTable pageTable;
+	TLB *tlb;
+	PageTable *pageTable;
 
 public:
 	TLBController();

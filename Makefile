@@ -1,7 +1,9 @@
 CC=g++
 CFLAGS=-g -Wall -Werror
 
-main: main.cpp
+C_SOURCES=$(wildcard *.cpp)
+
+tlbcontroller: ${C_SOURCES}
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean: 
