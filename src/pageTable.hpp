@@ -2,12 +2,15 @@
 
 #include <vector>
 #include <stdint.h>
+#include <stdlib.h>
+#include <iostream>
+
 #include "config.hpp"
 
 struct pageTableEntry
 {
-	uint64_t vpn;
-	uint64_t pfn;
+	uint64_t page_number;
+	uint64_t frame_number;
 	bool is_present;
 	bool is_protected;
 	bool is_dirty;
@@ -15,11 +18,7 @@ struct pageTableEntry
 	bool is_cached;
 
 	pageTableEntry() {}
-	pageTableEntry(uint64_t vpn, uint64_t pfn) : vpn(vpn), pfn(pfn), is_present(true), is_protected(false), is_dirty(false), is_referenced(false), is_cached(false) {}
-};
-
-class page_fault_exception
-{
+	pageTableEntry(uint64_t page_number, uint64_t frame_number) : page_number(page_number), frame_number(frame_number), is_present(true), is_protected(false), is_dirty(false), is_referenced(false), is_cached(false) {}
 };
 
 class PageTable
@@ -28,28 +27,36 @@ private:
 	/* Vector to store page table entries */
 	std::vector<pageTableEntry> page_table;
 
-	/* Number of entries in page table */
-	uint64_t pt_size;
-
-	/* Number of bits in addressing */
-	unsigned int bits_in_addressing;
-
-	/* Page/Frame size size */
-	unsigned int page_size;
-
-	/* Return vpn from VA and pfn from PA */
-	uint64_t get_num_from_addr(uint64_t addr);
-
 public:
 	PageTable();
 	~PageTable();
 
-	/* Insert a new mapping from Virtual address to Physical address */
-	void insert(uint64_t va, uint64_t pa);
+	void insert(uint64_t page_number , uint64_t frame_number);
 
-	/*
-	 * If found returns the page table entry of the Virtual Page Number
-	 * else throw an exception "page_fault_exception"
-	 */
-	pageTableEntry get_page_entry(uint64_t va);
+	uint64_t get_frame_number(uint64_t page_number);
 };
+
+PageTable::PageTable() {}
+
+PageTable::~PageTable() {}
+
+void PageTable::insert(uint64_t page_number, uint64_t frame_number)
+{
+	pageTableEntry entry(page_number, frame_number);
+	this->page_table.push_back(entry);
+}
+
+uint64_t PageTable::get_frame_number(uint64_t page_number)
+{
+	for (unsigned int i = 0; i < this->page_table.size(); i++)
+	{
+		if (this->page_table[i].page_number == page_number)
+		{
+			return this->page_table[i].frame_number;
+		}
+	}
+
+	std::cout << "Page not found in page table" << std::endl;
+	std::cout << "Page number: " << page_number << std::endl;
+	exit(EXIT_FAILURE);
+}

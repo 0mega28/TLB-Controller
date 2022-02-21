@@ -1,5 +1,6 @@
 #pragma once
 
-inline unsigned int bits_in_addressing = 32;
-inline unsigned int page_size = 4096; // 4KB
-inline std::size_t tlb_size = 30;
+#define BITS_IN_ADDRESSING = 32
+#define PAGE_SIZE = 4096 // 4KB
+#define TLB_SIZE = 256
+#define NUM_OF_WAYS = 4 // k-way set associative mapping

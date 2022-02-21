@@ -14,5 +14,5 @@ public:
 	TLBController();
 	~TLBController();
 
-	uint64_t get_pa_from_va(uint64_t vpn);
+	uint64_t get_pa_from_va(uint64_t va);
 };

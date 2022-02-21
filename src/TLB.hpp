@@ -1,36 +1,59 @@
 #pragma once
 
-#include <unordered_map>
-#include <queue>
-#include <list>
-#include <utility>
 #include <stdint.h>
+
+#include "set.hpp"
 
 class TLB
 {
 private:
-	/* Max TLB size */
-	std::size_t tlb_size;
+	Set **sets;
+	unsigned int num_sets;
 
-	/* UMap cache to store mapping from Virtual Page Number to Physical Frame Number */
-	std::unordered_map<uint64_t, uint64_t> vpn_to_pfn;
-
-	/* Queue to store the LRU order of the pages <vpn> */
-	std::list<uint64_t> lru_queue;
-
-	/* Remove least recently used page from lru_queue and vpn_to_pfn */
-	void remove_lru_page();
-
+	unsigned int get_index_block(uint64_t page_number);
 public:
-	TLB(std::size_t tlb_size);
+	TLB(unsigned int tlb_size, unsigned int num_ways);
 	~TLB();
 
-	/* Insert a new mapping from Virtual Page Number to Physical Frame Number */
-	void insert(uint64_t vpn, uint64_t pfn);
+	/* Returns frame_number if block found else -1 */
+	uint64_t get_frame_number(uint64_t page_number);
 
-	/* Checks if Virtual Page Number is present */
-	bool is_page_present(uint64_t vpn);
-
-	/* Returns the Physical Frame Number of the Virtual Page Number */
-	uint64_t get_pfn(uint64_t vpn);
+	/* Sets a block by following LRU replacement policy */
+	void set_block(uint64_t page_number, uint64_t frame_number);
 };
+
+TLB::TLB(unsigned int tlb_size, unsigned int num_ways)
+{
+	this->num_sets = tlb_size / num_ways;
+	this->sets = new Set *[this->num_sets];
+	for (unsigned int i = 0; i < this->num_sets; i++)
+	{
+		this->sets[i] = new Set(num_ways);
+	}
+}
+
+TLB::~TLB()
+{
+	for (unsigned int i = 0; i < this->num_sets; i++)
+	{
+		delete this->sets[i];
+	}
+	delete[] this->sets;
+}
+
+unsigned int TLB::get_index_block(uint64_t page_number)
+{
+	return page_number % this->num_sets;
+}
+
+uint64_t TLB::get_frame_number(uint64_t page_number)
+{
+	unsigned int index = this->get_index_block(page_number);
+	return this->sets[index]->get_frame_number(page_number);
+}
+
+void TLB::set_block(uint64_t page_number, uint64_t frame_number)
+{
+	unsigned int index = this->get_index_block(page_number);
+	this->sets[index]->set_block(page_number, frame_number);
+}
