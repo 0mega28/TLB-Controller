@@ -21,6 +21,12 @@ private:
 	/* Loads value from file into page table */
 	void load_page_table(std::string filename);
 
+	/* Returns page/frame number from address */
+	uint64_t get_index(uint64_t address);
+
+	/* Returns address from page number and virtual address  */
+	uint64_t get_address(uint64_t pn, uint64_t va);
+
 public:
 	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize, std::string pageTableEntryFile, std::string outputFile);
 	~TLBController();
@@ -55,9 +61,19 @@ void TLBController::load_page_table(std::string filename)
 	exit(-1);
 }
 
+uint64_t TLBController::get_index(uint64_t address)
+{
+	return address / this->pageSize;
+}
+
+uint64_t TLBController::get_address(uint64_t pn, uint64_t va)
+{
+	return (pn * this->pageSize) + (va % this->pageSize);
+}
+
 uint64_t TLBController::get_pa_from_va(uint64_t va)
 {
-	uint64_t pn = va / this->pageSize;
+	uint64_t pn = this->get_index(va);
 	uint64_t fn = this->tlb->get_frame_number(pn);
 
 	std::string output = "";
@@ -78,7 +94,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 
 	this->outfile << output << std::endl;
 
-	uint64_t pa = fn * this->pageSize + (va % this->pageSize);
+	uint64_t pa = get_address(fn, va);
 
 	return pa;
 }
