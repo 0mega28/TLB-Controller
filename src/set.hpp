@@ -3,6 +3,7 @@
 #include <stdint.h>
 
 #include "block.hpp"
+#include "timer.hpp"
 
 class Set
 {
@@ -10,7 +11,7 @@ private:
 	Block **blocks;
 	unsigned int size;
 	unsigned int used;
-	uint64_t time;
+	Timer<uint64_t> timer;
 
 	Block *get_LRU_replacement_block();
 
@@ -29,7 +30,6 @@ Set::Set(unsigned int size)
 {
 	this->size = size;
 	this->used = 0;
-	this->time = 0;
 
 	this->blocks = new Block *[size];
 	for (unsigned int i = 0; i < size; i++)
@@ -79,7 +79,7 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 
 	if (block)
 	{
-		block->set_last_access(this->time++);
+		block->set_last_access(this->timer.get_time());
 		return block->get_frame_number();
 	}
 
@@ -90,12 +90,12 @@ void Set::set_block(uint64_t page_number, uint64_t frame_number)
 {
 	if (this->used < this->size)
 	{
-		this->blocks[this->used]->set(page_number, frame_number, this->time++);
+		this->blocks[this->used]->set(page_number, frame_number, this->timer.get_time());
 		this->used++;
 	}
 	else
 	{
 		Block *block = this->get_LRU_replacement_block();
-		block->set(page_number, frame_number, this->time++);
+		block->set(page_number, frame_number, this->timer.get_time());
 	}
 }
