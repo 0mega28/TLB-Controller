@@ -84,7 +84,13 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	{
 		/* TLB miss */
 		fn = this->pageTable->get_frame_number(pn);
-		this->tlb->set_block(pn, fn);
+		Block evicted_block = this->tlb->set_block(pn, fn);
+
+		if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
+		{
+			// TODO: handle block eviction 
+			// The block can be pushed to next level of cache
+		}
 
 		output += "TLB miss";
 	}

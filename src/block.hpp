@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#define BLOCK_NOT_ACCESSED __UINT64_MAX__
+
 class Block
 {
 private:
@@ -23,6 +25,8 @@ public:
 	uint64_t get_page_number();
 	uint64_t get_frame_number();
 	uint64_t get_last_access();
+
+	Block get_clone();
 };
 
 Block::Block()
@@ -69,4 +73,11 @@ uint64_t Block::get_frame_number()
 uint64_t Block::get_last_access()
 {
 	return this->last_access;
+}
+
+Block Block::get_clone()
+{
+	Block clone_block;
+	clone_block.set(this->page_number, this->frame_number, this->last_access);
+	return clone_block;
 }

@@ -24,8 +24,12 @@ public:
 	/* Returns frame_number if block found else BLOCK_NOT_FOUND */
 	uint64_t get_frame_number(uint64_t page_number);
 
-	/* Sets a block by following LRU replacement policy */
-	void set_block(uint64_t page_number, uint64_t frame_number);
+	/* 
+	 * Sets a block by following LRU replacement policy 
+	 * Returns the evicted block so that it can be pushed to next level of cache
+	 * If no eviction is needed, it returns a block with last accessed time of BLOCK_NOT_ACCESSED
+	 */
+	Block set_block(uint64_t page_number, uint64_t frame_number);
 };
 
 Set::Set(unsigned int size)
@@ -88,8 +92,12 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 	return BLOCK_NOT_FOUND;
 }
 
-void Set::set_block(uint64_t page_number, uint64_t frame_number)
+Block Set::set_block(uint64_t page_number, uint64_t frame_number)
 {
+	/* Return the evicted block so that it can be pushed to next level of cache */
+	Block evicted_block;
+	evicted_block.set_last_access(BLOCK_NOT_ACCESSED);
+
 	if (this->used < this->size)
 	{
 		this->blocks[this->used]->set(page_number, frame_number, this->timer.get_time());
@@ -98,6 +106,9 @@ void Set::set_block(uint64_t page_number, uint64_t frame_number)
 	else
 	{
 		Block *block = this->get_LRU_replacement_block();
+		evicted_block = block->get_clone();
 		block->set(page_number, frame_number, this->timer.get_time());
 	}
+
+	return evicted_block;
 }
