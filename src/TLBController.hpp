@@ -8,6 +8,7 @@
 #include "TLB.hpp"
 #include "config.hpp"
 
+// TODO: Multilevel TLB support
 class TLBController
 {
 private:
@@ -79,7 +80,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	std::string output = "";
 	output += "VA: " + std::to_string(va) + "\t";
 
-	if (fn == (uint64_t)-1)
+	if (fn == BLOCK_NOT_FOUND)
 	{
 		/* TLB miss */
 		fn = this->pageTable->get_frame_number(pn);
@@ -89,6 +90,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	}
 	else
 	{
+		/* TLB hit */
 		output += "TLB hit";
 	}
 

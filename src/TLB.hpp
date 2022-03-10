@@ -15,7 +15,7 @@ public:
 	TLB(unsigned int tlb_size, unsigned int num_ways);
 	~TLB();
 
-	/* Returns frame_number if block found else -1 */
+	/* Returns frame_number if block found else BLOCK_NOT_FOUND */
 	uint64_t get_frame_number(uint64_t page_number);
 
 	/* Sets a block by following LRU replacement policy */

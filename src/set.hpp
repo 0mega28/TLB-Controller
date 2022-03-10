@@ -5,6 +5,8 @@
 #include "block.hpp"
 #include "timer.hpp"
 
+#define BLOCK_NOT_FOUND __UINT64_MAX__
+
 class Set
 {
 private:
@@ -19,7 +21,7 @@ public:
 	Set(unsigned int size);
 	~Set();
 
-	/* Returns frame_number if block found else -1 */
+	/* Returns frame_number if block found else BLOCK_NOT_FOUND */
 	uint64_t get_frame_number(uint64_t page_number);
 
 	/* Sets a block by following LRU replacement policy */
@@ -83,7 +85,7 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 		return block->get_frame_number();
 	}
 
-	return -1;
+	return BLOCK_NOT_FOUND;
 }
 
 void Set::set_block(uint64_t page_number, uint64_t frame_number)
