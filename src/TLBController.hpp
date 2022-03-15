@@ -7,6 +7,7 @@
 #include "pageTable.hpp"
 #include "TLB.hpp"
 #include "config.hpp"
+#include "utils.hpp"
 
 // TODO: Multilevel TLB support
 class TLBController
@@ -20,7 +21,7 @@ private:
 	std::ofstream outfile;
 
 	/* Loads value from file into page table */
-	void load_page_table(std::string filename);
+	void load_page_table(std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector);
 
 	/* Returns page/frame number from address */
 	uint64_t get_index(uint64_t address);
@@ -29,20 +30,24 @@ private:
 	uint64_t get_address(uint64_t pn, uint64_t va);
 
 public:
-	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize, std::string pageTableEntryFile, std::string outputFile);
+	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
+		      std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
+		      std::string outputFile);
 	~TLBController();
 
 	uint64_t get_pa_from_va(uint64_t va);
 };
 
-TLBController::TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize, std::string pageTableEntryFile, std::string outputFile)
+TLBController::TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
+			     std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
+			     std::string outputFile)
 {
 	this->pageSize = pageSize;
 
 	this->tlb = new TLB(tlb_size, num_ways);
 	this->pageTable = new PageTable();
 
-	this->load_page_table(pageTableEntryFile);
+	this->load_page_table(page_table_vector);
 
 	this->outfile.open(outputFile);
 }
@@ -55,11 +60,15 @@ TLBController::~TLBController()
 	this->outfile.close();
 }
 
-void TLBController::load_page_table(std::string filename)
+void TLBController::load_page_table(std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector)
 {
-	// TODO: Implement (Depends on how the file is formatted)
-	std::cout << "Not implemented yet" << std::endl;
-	exit(-1);
+	for (unsigned int i = 0; i < page_table_vector.size(); i++)
+	{
+		uint64_t page_number = this->get_index(page_table_vector[i].first);
+		uint64_t frame_number = this->get_index(page_table_vector[i].second);
+
+		this->pageTable->insert(page_number, frame_number);
+	}
 }
 
 uint64_t TLBController::get_index(uint64_t address)
@@ -78,7 +87,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	uint64_t fn = this->tlb->get_frame_number(pn);
 
 	std::string output = "";
-	output += "VA: " + std::to_string(va) + "\t";
+	output += "VA: " + to_hex(va) + "\t";
 
 	if (fn == BLOCK_NOT_FOUND)
 	{
@@ -88,7 +97,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 
 		if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
 		{
-			// TODO: handle block eviction 
+			// TODO: handle block eviction
 			// The block can be pushed to next level of cache
 		}
 
