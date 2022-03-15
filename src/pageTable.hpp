@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include "config.hpp"
+#include "utils.hpp"
 
 struct pageTableEntry
 {
@@ -31,7 +32,7 @@ public:
 	PageTable();
 	~PageTable();
 
-	void insert(uint64_t page_number , uint64_t frame_number);
+	void insert(uint64_t page_number, uint64_t frame_number);
 
 	uint64_t get_frame_number(uint64_t page_number);
 };
@@ -57,6 +58,6 @@ uint64_t PageTable::get_frame_number(uint64_t page_number)
 	}
 
 	std::cout << "Page not found in page table" << std::endl;
-	std::cout << "Page number: " << page_number << std::endl;
+	std::cout << "Page number: " << to_hex(page_number) << std::endl;
 	exit(EXIT_FAILURE);
 }
