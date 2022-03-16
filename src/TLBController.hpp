@@ -93,6 +93,16 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	{
 		/* TLB miss */
 		fn = this->pageTable->get_frame_number(pn);
+
+		if (fn == PAGE_FAULT)
+		{
+			output = "";
+			output = "Page Fault for VA: " + to_hex(va);
+			std::cerr << output << std::endl;
+			this->outfile << output << std::endl;
+			return fn; /* PAGE_FAULT */
+		}
+
 		Block evicted_block = this->tlb->set_block(pn, fn);
 
 		if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)

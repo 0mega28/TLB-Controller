@@ -8,6 +8,8 @@
 #include "config.hpp"
 #include "utils.hpp"
 
+#define PAGE_FAULT __UINT64_MAX__
+
 struct pageTableEntry
 {
 	uint64_t page_number;
@@ -34,6 +36,10 @@ public:
 
 	void insert(uint64_t page_number, uint64_t frame_number);
 
+	/*
+	 * Returns frame number if page found
+	 * else PAGE_FAULT
+	 */
 	uint64_t get_frame_number(uint64_t page_number);
 };
 
@@ -57,7 +63,6 @@ uint64_t PageTable::get_frame_number(uint64_t page_number)
 		}
 	}
 
-	std::cout << "Page not found in page table" << std::endl;
-	std::cout << "Page number: " << to_hex(page_number) << std::endl;
-	exit(EXIT_FAILURE);
+	/* page not found */
+	return PAGE_FAULT;
 }
