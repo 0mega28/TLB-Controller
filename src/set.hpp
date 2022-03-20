@@ -24,12 +24,13 @@ public:
 	/* Returns frame_number if block found else BLOCK_NOT_FOUND */
 	uint64_t get_frame_number(uint64_t page_number);
 
-	/* 
-	 * Sets a block by following LRU replacement policy 
-	 * Returns the evicted block so that it can be pushed to next level of cache
-	 * If no eviction is needed, it returns a block with last accessed time of BLOCK_NOT_ACCESSED
+	/*
+	 * Inserts a block by evicting a block using the LRU replacement
+	 * policy. Returns the evicted block so that it can be pushed to
+	 * next level of cache. If no eviction is needed, it returns a
+	 * block with last accessed time of BLOCK_NOT_ACCESSED.
 	 */
-	Block set_block(uint64_t page_number, uint64_t frame_number);
+	Block insert_block(uint64_t page_number, uint64_t frame_number);
 };
 
 Set::Set(unsigned int size)
@@ -76,7 +77,8 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 
 	for (unsigned int i = 0; i < this->size; i++)
 	{
-		if (this->blocks[i]->get_page_number() == page_number)
+		if (this->blocks[i]->get_block_validity() &&
+		    this->blocks[i]->get_page_number() == page_number)
 		{
 			block = this->blocks[i];
 			break;
@@ -92,7 +94,7 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 	return BLOCK_NOT_FOUND;
 }
 
-Block Set::set_block(uint64_t page_number, uint64_t frame_number)
+Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 {
 	/* Return the evicted block so that it can be pushed to next level of cache */
 	Block evicted_block;
@@ -100,14 +102,19 @@ Block Set::set_block(uint64_t page_number, uint64_t frame_number)
 
 	if (this->used < this->size)
 	{
-		this->blocks[this->used]->set(page_number, frame_number, this->timer.get_time());
+		/* Block is valid */
+		this->blocks[this->used]->set(page_number, frame_number,
+					      this->timer.get_time(),
+					      true);
 		this->used++;
 	}
 	else
 	{
 		Block *block = this->get_LRU_replacement_block();
 		evicted_block = block->get_clone();
-		block->set(page_number, frame_number, this->timer.get_time());
+		/* Block is valid */
+		block->set(page_number, frame_number,
+			   this->timer.get_time(), true);
 	}
 
 	return evicted_block;
