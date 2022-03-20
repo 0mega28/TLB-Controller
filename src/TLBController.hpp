@@ -92,7 +92,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	if (fn == BLOCK_NOT_FOUND)
 	{
 		/* TLB miss */
-		fn = this->pageTable->get_frame_number(pn);
+		fn = this->pageTable->get_frame_number_short(pn);
 
 		if (fn == PAGE_FAULT)
 		{
