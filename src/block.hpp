@@ -19,8 +19,8 @@ public:
 	Block();
 	~Block();
 
-	void set(uint64_t page_number, uint64_t frame_number,
-		 uint64_t last_access, bool is_valid);
+	void init(uint64_t page_number, uint64_t frame_number,
+		  uint64_t last_access, bool is_valid);
 
 	void set_page_number(uint64_t page_number);
 	void set_frame_number(uint64_t frame_number);
@@ -45,8 +45,8 @@ Block::Block()
 
 Block::~Block() {}
 
-void Block::set(uint64_t page_number, uint64_t frame_number,
-		uint64_t last_access, bool is_valid)
+void Block::init(uint64_t page_number, uint64_t frame_number,
+		 uint64_t last_access, bool is_valid)
 {
 	this->page_number = page_number;
 	this->frame_number = frame_number;
@@ -97,7 +97,7 @@ bool Block::get_block_validity()
 Block Block::get_clone()
 {
 	Block clone_block;
-	clone_block.set(this->page_number, this->frame_number,
-			this->last_access, this->is_valid);
+	clone_block.init(this->page_number, this->frame_number,
+			 this->last_access, this->is_valid);
 	return clone_block;
 }

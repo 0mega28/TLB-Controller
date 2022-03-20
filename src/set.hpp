@@ -103,9 +103,9 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 	if (this->used < this->size)
 	{
 		/* Block is valid */
-		this->blocks[this->used]->set(page_number, frame_number,
-					      this->timer.get_time(),
-					      true);
+		this->blocks[this->used]->init(page_number, frame_number,
+					       this->timer.get_time(),
+					       true);
 		this->used++;
 	}
 	else
@@ -113,8 +113,8 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 		Block *block = this->get_LRU_replacement_block();
 		evicted_block = block->get_clone();
 		/* Block is valid */
-		block->set(page_number, frame_number,
-			   this->timer.get_time(), true);
+		block->init(page_number, frame_number,
+			    this->timer.get_time(), true);
 	}
 
 	return evicted_block;
