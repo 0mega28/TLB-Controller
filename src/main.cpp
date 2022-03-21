@@ -80,8 +80,12 @@ int main(int argc, char **argv)
 	 */
 	const char *inputfile = argv[1];
 
-	// TODO: unhardcode this and make output file name dynamic from input file
-	const char *outputfile = "output.txt";
+	std::string outputfile(argv[1]);
+	/*
+	 * Replace "input" string from input file name with "output"
+	 * e.g. input/black -> output/black
+	 */
+	outputfile.replace(outputfile.find("input"), sizeof("input") - 1, "output");
 
 	/* Our test cases which test TLB performance */
 	std::vector<uint64_t> test_VA_Vector;
