@@ -1,3 +1,6 @@
 tlbcontroller
 output.txt
 inputtrace.txt
+input/
+output/
+tlbstatistics.txt
