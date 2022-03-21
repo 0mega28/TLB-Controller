@@ -6,7 +6,6 @@
 #include "config.hpp"
 
 void readInputTraces(const char *file,
-		     std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
 		     std::vector<uint64_t> &test_VA_Vector)
 {
 	char pt_entry = 'R';
@@ -51,10 +50,12 @@ void readInputTraces(const char *file,
 
 			uint64_t va_num = std::stoul(va, nullptr, 16);
 			uint64_t pa_num = std::stoul(pa, nullptr, 16);
+			(void)pa_num;
 
-			page_table_vector.push_back(std::make_pair(va_num, pa_num));
 			test_VA_Vector.push_back(va_num);
-		} else {
+		}
+		else
+		{
 			std::cerr << "Error: Invalid trace entry" << std::endl;
 			exit(EXIT_FAILURE);
 		}
@@ -65,7 +66,7 @@ int main(int argc, char **argv)
 {
 	if (argc != 2)
 	{
-		std::cerr << "Usage: " << argv[0] << " <trace file>"  << std::endl;
+		std::cerr << "Usage: " << argv[0] << " <trace file>" << std::endl;
 		exit(1);
 	}
 
@@ -75,25 +76,21 @@ int main(int argc, char **argv)
 	 * 2) 3 W 0x36167780
 	 *
 	 * For both the instruction types, treat the 3rd column
-	 * as the VA and assume PA is equal to the VA, storing them in
-	 * the 'page_table_vector'.
+	 * as the VA and assume PA is equal to the VA
 	 */
 	const char *inputfile = argv[1];
 
 	// TODO: unhardcode this and make output file name dynamic from input file
 	const char *outputfile = "output.txt";
 
-	/* Stores VA to PA mapping to be finally loaded in page table */
-	std::vector<std::pair<uint64_t, uint64_t>> page_table_vector;
-
 	/* Our test cases which test TLB performance */
 	std::vector<uint64_t> test_VA_Vector;
 
-	readInputTraces(inputfile, page_table_vector, test_VA_Vector);
+	readInputTraces(inputfile, test_VA_Vector);
 
 	TLBController *tlbcontroller =
 	    new TLBController(TLB_SIZE, NUM_OF_WAYS, PAGE_SIZE,
-			      page_table_vector, outputfile);
+			      outputfile);
 
 	for (auto &va : test_VA_Vector)
 	{

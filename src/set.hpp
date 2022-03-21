@@ -11,14 +11,14 @@ class Set
 {
 private:
 	Block **blocks;
-	unsigned int size;
+	unsigned int ways;
 	unsigned int used;
 	Timer<uint64_t> timer;
 
 	Block *get_LRU_replacement_block();
 
 public:
-	Set(unsigned int size);
+	Set(unsigned int ways);
 	~Set();
 
 	/* Returns frame_number if block found else BLOCK_NOT_FOUND */
@@ -33,13 +33,13 @@ public:
 	Block insert_block(uint64_t page_number, uint64_t frame_number);
 };
 
-Set::Set(unsigned int size)
+Set::Set(unsigned int ways)
 {
-	this->size = size;
+	this->ways = ways;
 	this->used = 0;
 
-	this->blocks = new Block *[size];
-	for (unsigned int i = 0; i < size; i++)
+	this->blocks = new Block *[ways];
+	for (unsigned int i = 0; i < ways; i++)
 	{
 		this->blocks[i] = new Block();
 	}
@@ -50,7 +50,7 @@ Block *Set::get_LRU_replacement_block()
 	Block *block = nullptr;
 	uint64_t min_last_access = UINT64_MAX;
 
-	for (unsigned int i = 0; i < this->size; i++)
+	for (unsigned int i = 0; i < this->ways; i++)
 	{
 		if (this->blocks[i]->get_last_access() < min_last_access)
 		{
@@ -64,7 +64,7 @@ Block *Set::get_LRU_replacement_block()
 
 Set::~Set()
 {
-	for (unsigned int i = 0; i < this->size; i++)
+	for (unsigned int i = 0; i < this->ways; i++)
 	{
 		delete this->blocks[i];
 	}
@@ -75,17 +75,17 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 {
 	Block *block = nullptr;
 
-	for (unsigned int i = 0; i < this->size; i++)
+	for (unsigned int i = 0; i < this->ways; i++)
 	{
-		if (this->blocks[i]->get_block_validity() &&
-		    this->blocks[i]->get_page_number() == page_number)
+		if (this->blocks[i]->get_block_validity() && 
+		    this->blocks[i]->get_page_number() == page_number) /* tag match */
 		{
 			block = this->blocks[i];
 			break;
 		}
 	}
 
-	if (block)
+	if (block) /* update the last access time of the current block */
 	{
 		block->set_last_access(this->timer.get_time());
 		return block->get_frame_number();
@@ -100,7 +100,7 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 	Block evicted_block;
 	evicted_block.set_last_access(BLOCK_NOT_ACCESSED);
 
-	if (this->used < this->size)
+	if (this->used < this->ways)
 	{
 		/* Block is valid */
 		this->blocks[this->used]->init(page_number, frame_number,

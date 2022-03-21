@@ -7,4 +7,4 @@ tlbcontroller: ${C_SOURCES}
 	$(CC) $(CFLAGS) $^ -o $@
 
 clean: 
-	rm -f main
+	rm -f tlbcontroller

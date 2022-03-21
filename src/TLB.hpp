@@ -10,7 +10,7 @@ private:
 	Set **sets;
 	unsigned int num_sets;
 
-	unsigned int get_index_block(uint64_t page_number);
+	unsigned int get_index_of_set(uint64_t page_number);
 public:
 	TLB(unsigned int tlb_size, unsigned int num_ways);
 	~TLB();
@@ -46,19 +46,19 @@ TLB::~TLB()
 	delete[] this->sets;
 }
 
-unsigned int TLB::get_index_block(uint64_t page_number)
+unsigned int TLB::get_index_of_set(uint64_t page_number)
 {
 	return page_number % this->num_sets;
 }
 
 uint64_t TLB::get_frame_number(uint64_t page_number)
 {
-	unsigned int index = this->get_index_block(page_number);
+	unsigned int index = this->get_index_of_set(page_number);
 	return this->sets[index]->get_frame_number(page_number);
 }
 
 Block TLB::insert_block(uint64_t page_number, uint64_t frame_number)
 {
-	unsigned int index = this->get_index_block(page_number);
+	unsigned int index = this->get_index_of_set(page_number);
 	return this->sets[index]->insert_block(page_number, frame_number);
 }

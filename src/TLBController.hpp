@@ -34,7 +34,6 @@ private:
 
 public:
 	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
-		      std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
 		      std::string outputFile);
 	~TLBController();
 
@@ -45,15 +44,12 @@ public:
 };
 
 TLBController::TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
-			     std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
 			     std::string outputFile)
 {
 	this->pageSize = pageSize;
 
 	this->tlb = new TLB(tlb_size, num_ways);
 	this->pageTable = new PageTable();
-
-	this->load_page_table(page_table_vector);
 
 	this->outfile.open(outputFile);
 }
@@ -89,16 +85,19 @@ uint64_t TLBController::get_address(uint64_t pn, uint64_t va)
 
 uint64_t TLBController::get_pa_from_va(uint64_t va)
 {
+	/* gets page number from virtual address */
 	uint64_t pn = this->get_index(va);
+	/* get frame number from page number from the TLB */
 	uint64_t fn = this->tlb->get_frame_number(pn);
 
 	std::string output = "";
 	output += "VA: " + to_hex(va) + "\t";
 
+	/* TLB miss */
 	if (fn == BLOCK_NOT_FOUND)
 	{
 		this->total_miss++;
-		/* TLB miss */
+		/* get frame number from page number using dummy function for page table */
 		fn = this->pageTable->get_frame_number_short(pn);
 
 		if (fn == PAGE_FAULT)
@@ -128,10 +127,10 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 
 		output += "TLB miss";
 	}
+	/* TLB hit */
 	else
 	{
 		this->total_hit++;
-		/* TLB hit */
 		output += "TLB hit";
 	}
 
