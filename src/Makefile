@@ -6,5 +6,8 @@ C_SOURCES=$(wildcard *.cpp)
 tlbcontroller: ${C_SOURCES}
 	$(CC) $(CFLAGS) $^ -o $@
 
-clean: 
+run: scripts/runall.sh
+	./scripts/runall.sh
+
+clean:
 	rm -f tlbcontroller
