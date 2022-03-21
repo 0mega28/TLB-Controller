@@ -104,8 +104,7 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 	{
 		/* Block is valid */
 		this->blocks[this->used]->init(page_number, frame_number,
-					       this->timer.get_time(),
-					       true);
+					       this->timer.get_time());
 		this->used++;
 	}
 	else
@@ -114,7 +113,7 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 		evicted_block = block->get_clone();
 		/* Block is valid */
 		block->init(page_number, frame_number,
-			    this->timer.get_time(), true);
+			    this->timer.get_time());
 	}
 
 	return evicted_block;
