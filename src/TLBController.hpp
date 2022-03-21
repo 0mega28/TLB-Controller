@@ -20,6 +20,9 @@ private:
 
 	std::ofstream outfile;
 
+	/* TLB Statistics */
+	uint64_t total_miss = 0, total_hit = 0;
+
 	/* Loads value from file into page table */
 	void load_page_table(std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector);
 
@@ -34,6 +37,9 @@ public:
 		      std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector,
 		      std::string outputFile);
 	~TLBController();
+
+	/* Pretty print the output */
+	void print_statistics();
 
 	uint64_t get_pa_from_va(uint64_t va);
 };
@@ -91,6 +97,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 
 	if (fn == BLOCK_NOT_FOUND)
 	{
+		this->total_miss++;
 		/* TLB miss */
 		fn = this->pageTable->get_frame_number_short(pn);
 
@@ -123,6 +130,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	}
 	else
 	{
+		this->total_hit++;
 		/* TLB hit */
 		output += "TLB hit";
 	}
@@ -132,4 +140,15 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	uint64_t pa = get_address(fn, va);
 
 	return pa;
+}
+
+void TLBController::print_statistics()
+{
+	using namespace std;
+	cout <<  "TLB Statistics: ";
+	cout << "\n\tTotal Address: " << (this->total_hit + this->total_miss);
+	cout << "\n\tTotal Misses: " << this->total_miss;
+	cout << "\n\tTotal Hits: " << this->total_hit;
+	cout << "\n\tHit Ratio: " << ((this->total_hit * 100) / (this->total_hit + this->total_miss));
+	cout << endl;
 }

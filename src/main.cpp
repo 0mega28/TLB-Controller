@@ -101,6 +101,9 @@ int main(int argc, char **argv)
 		(void)pa; /* suppress unused variable warning */
 	}
 
+	/* Print Statistics */
+	tlbcontroller->print_statistics();
+
 	delete (tlbcontroller);
 	return 0;
 }
