@@ -21,7 +21,10 @@ struct pageTableEntry
 	bool is_cached;
 
 	pageTableEntry() {}
-	pageTableEntry(uint64_t page_number, uint64_t frame_number) : page_number(page_number), frame_number(frame_number), is_present(true), is_protected(false), is_dirty(false), is_referenced(false), is_cached(false) {}
+	pageTableEntry(uint64_t page_number, uint64_t frame_number) :
+		       page_number(page_number), frame_number(frame_number),
+		       is_present(true), is_protected(false), is_dirty(false),
+		       is_referenced(false), is_cached(false) {}
 };
 
 class PageTable
@@ -41,6 +44,8 @@ public:
 	 * else PAGE_FAULT
 	 */
 	uint64_t get_frame_number(uint64_t page_number);
+
+	uint64_t get_frame_number_short(uint64_t page_number);
 };
 
 PageTable::PageTable() {}
@@ -65,4 +70,17 @@ uint64_t PageTable::get_frame_number(uint64_t page_number)
 
 	/* page not found */
 	return PAGE_FAULT;
+}
+
+/*
+ * This is a dummy function which simply returns the frame number
+ * equal to the page number as we assume that the VA and PA are
+ * identical. This is simply for the ease of the simulation and
+ * does not reflect how things are performed in real-life. For a
+ * more realistic function, one may refer to 'get_frame_number()'.
+ */
+uint64_t PageTable::get_frame_number_short(uint64_t page_number)
+{
+	uint64_t frame_number = page_number;
+	return frame_number;
 }

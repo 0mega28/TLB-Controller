@@ -92,7 +92,7 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 	if (fn == BLOCK_NOT_FOUND)
 	{
 		/* TLB miss */
-		fn = this->pageTable->get_frame_number(pn);
+		fn = this->pageTable->get_frame_number_short(pn);
 
 		if (fn == PAGE_FAULT)
 		{
@@ -100,10 +100,18 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 			output = "Page Fault for VA: " + to_hex(va);
 			std::cerr << output << std::endl;
 			this->outfile << output << std::endl;
-			return fn; /* PAGE_FAULT */
+			/* PAGE_FAULT */
+			return fn;
 		}
 
-		Block evicted_block = this->tlb->set_block(pn, fn);
+		/*
+		 * If we found the block in the page table, it needs
+		 * to be inserted into the TLB. If there exists a block
+		 * which needs to be evicted from the TLB due to capacity
+		 * constraints, store it and push into the lower level
+		 * of the TLB.
+		 */
+		Block evicted_block = this->tlb->insert_block(pn, fn);
 
 		if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
 		{
