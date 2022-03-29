@@ -103,6 +103,8 @@ int main(int argc, char **argv)
 	}
 
 	/* Print Statistics */
+	std::cout << "----------------------------------------" << std::endl;
+	std::cout << "Input file: " << inputfile << std::endl;
 	tlbcontroller->print_statistics();
 
 	delete (tlbcontroller);
