@@ -20,14 +20,14 @@ make --always-make
 # Clear output file
 rm -f "${outputfile}"
 
+sed -n '/#define/s/#define//p' config.hpp >> "${outputfile}"
+
 for files in $input_files; do
 	(
 		echo "Running test case: ${files}"
 
 		{
 			"${program}" "${files}"
-			echo "Test case: ${files}"
-			echo "-------------------------------------------------------"
 		} >> "${outputfile}"
 
 		echo "Completed test case: ${files}"
