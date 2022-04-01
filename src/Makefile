@@ -1,5 +1,5 @@
 CC=g++
-CFLAGS=-g -Wall -Werror
+CFLAGS=-g -Wall -Werror -fopenmp
 
 C_SOURCES=$(wildcard *.cpp)
 H_SOURCES=$(wildcard *.hpp)
