@@ -1,6 +1,7 @@
 #include <vector>
 #include <stdint.h>
 #include <sstream>
+#include <csignal>
 
 #include "TLBController.hpp"
 #include "config.hpp"
@@ -62,6 +63,18 @@ void readInputTraces(const char *file,
 	}
 }
 
+TLBController *tlbcontroller;
+void sigint_handler(int sig_num)
+{
+	std::cout << "Interrupt signal (" << sig_num << ") received.\n";
+
+	/* Print Statistics */
+	tlbcontroller->print_statistics();
+
+	std::cout << "Exiting...\n";
+	exit(EXIT_FAILURE);
+}
+
 int main(int argc, char **argv)
 {
 	if (argc != 2)
@@ -92,9 +105,12 @@ int main(int argc, char **argv)
 
 	readInputTraces(inputfile, test_VA_Vector);
 
-	TLBController *tlbcontroller =
+	tlbcontroller =
 	    new TLBController(TLB_SIZE, NUM_OF_WAYS, PAGE_SIZE,
 			      outputfile);
+
+	/* Install SIGINT handler */
+	std::signal(SIGINT, sigint_handler);
 
 	for (auto &va : test_VA_Vector)
 	{
