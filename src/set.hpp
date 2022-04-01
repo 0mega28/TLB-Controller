@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <omp.h>
 
 #include "block.hpp"
 #include "timer.hpp"
@@ -75,13 +76,22 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 {
 	Block *block = nullptr;
 
-	for (unsigned int i = 0; i < this->ways; i++)
+	volatile bool block_found_flag = false;
+
+#pragma omp parallel
 	{
-		if (this->blocks[i]->get_block_validity() && 
-		    this->blocks[i]->get_page_number() == page_number) /* tag match */
+#pragma omp for
+		for (unsigned int i = 0; i < this->ways; i++)
 		{
-			block = this->blocks[i];
-			break;
+			if (block_found_flag)
+				continue;
+
+			if (this->blocks[i]->get_block_validity() &&
+			    this->blocks[i]->get_page_number() == page_number) /* tag match */
+			{
+				block = this->blocks[i];
+				block_found_flag = true;
+			}
 		}
 	}
 
