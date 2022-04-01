@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <thread>
 
 #include "block.hpp"
 #include "timer.hpp"
@@ -16,6 +17,11 @@ private:
 	Timer<uint64_t> timer;
 
 	Block *get_LRU_replacement_block();
+
+#define NUMBER_OF_THREAD 8
+	std::thread threads[NUMBER_OF_THREAD];
+	Block *ret_block;
+	void _get_frame_number(uint64_t page_number, int start_index, int end_index);
 
 public:
 	Set(unsigned int ways);
@@ -71,20 +77,41 @@ Set::~Set()
 	delete[] this->blocks;
 }
 
-uint64_t Set::get_frame_number(uint64_t page_number)
+void Set::_get_frame_number(uint64_t page_number, int start_index, int end_index)
 {
-	Block *block = nullptr;
-
-	for (unsigned int i = 0; i < this->ways; i++)
+	for (int i = start_index; i < end_index; i++)
 	{
-		if (this->blocks[i]->get_block_validity() && 
-		    this->blocks[i]->get_page_number() == page_number) /* tag match */
+		/* If other thread found the block just return from the thread */
+		if (this->ret_block)
+			return;
+
+		if (this->blocks[i]->get_block_validity() &&
+		    this->blocks[i]->get_page_number() == page_number)
 		{
-			block = this->blocks[i];
-			break;
+			this->ret_block = this->blocks[i];
+			return;
 		}
 	}
+}
 
+uint64_t Set::get_frame_number(uint64_t page_number)
+{
+	this->ret_block = nullptr;
+
+	unsigned int start_index = 0;
+
+	for (unsigned int i = 0; i < NUMBER_OF_THREAD; i++)
+	{
+		unsigned int end_index = (this->ways * (i + 1)) / NUMBER_OF_THREAD;
+		this->threads[i] = std::thread(&Set::_get_frame_number, this, page_number,
+					 start_index, end_index);
+		start_index = end_index;
+	}
+
+	for (auto &th : this->threads)
+		th.join();
+
+	Block *block = this->ret_block;
 	if (block) /* update the last access time of the current block */
 	{
 		block->set_last_access(this->timer.get_time());
