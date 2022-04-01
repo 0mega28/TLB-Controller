@@ -70,6 +70,8 @@ void sigint_handler(int sig_num)
 
 	/* Print Statistics */
 	tlbcontroller->print_statistics();
+	/* Clean up memory */
+	delete tlbcontroller;
 
 	std::cout << "Exiting...\n";
 	exit(EXIT_FAILURE);
