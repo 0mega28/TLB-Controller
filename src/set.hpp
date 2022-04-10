@@ -12,7 +12,7 @@ class Set
 private:
 	Block **blocks;
 	unsigned int ways;
-	
+
 	/* No of blocks installed in a set */
 	unsigned int used;
 	Timer<uint64_t> timer;
@@ -33,6 +33,12 @@ public:
 	 * block with last accessed time of BLOCK_NOT_ACCESSED.
 	 */
 	Block insert_block(uint64_t page_number, uint64_t frame_number);
+	/*
+	 * Removes the block of given page number from the set
+	 * i.e. set validity of that block to false
+	 * and returns the evicted block
+	 */
+	Block remove_block(uint64_t page_number);
 };
 
 Set::Set(unsigned int ways)
@@ -104,10 +110,16 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 
 	if (this->used < this->ways)
 	{
-		/* Block is valid */
-		this->blocks[this->used]->init(page_number, frame_number,
-					       this->timer.get_time());
-		this->used++;
+		for (unsigned int i = 0; i < this->ways; i++)
+		{
+			if (!this->blocks[i]->get_block_validity())
+			{
+				this->blocks[i]->init(page_number, frame_number,
+						      this->timer.get_time());
+				this->used++;
+				return evicted_block;
+			}
+		}
 	}
 	else
 	{
@@ -116,6 +128,26 @@ Block Set::insert_block(uint64_t page_number, uint64_t frame_number)
 		/* Block is valid */
 		block->init(page_number, frame_number,
 			    this->timer.get_time());
+	}
+
+	return evicted_block;
+}
+
+Block Set::remove_block(uint64_t page_number)
+{
+	Block evicted_block;
+	evicted_block.set_last_access(BLOCK_NOT_ACCESSED);
+
+	for (unsigned int i = 0; i < this->ways; i++)
+	{
+		if (this->blocks[i]->get_block_validity() &&
+		    this->blocks[i]->get_page_number() == page_number)
+		{
+			evicted_block = this->blocks[i]->get_clone();
+			this->blocks[i]->set_block_validity(false);
+			this->used--;
+			return evicted_block;
+		}
 	}
 
 	return evicted_block;

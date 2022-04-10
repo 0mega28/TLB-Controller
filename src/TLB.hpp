@@ -11,6 +11,7 @@ private:
 	unsigned int num_sets;
 
 	unsigned int get_index_of_set(uint64_t page_number);
+
 public:
 	/*
 	 * @param tlb_size Number of blocks in the TLB
@@ -29,10 +30,15 @@ public:
 	 * block with last accessed time of BLOCK_NOT_ACCESSED.
 	 */
 	Block insert_block(uint64_t page_number, uint64_t frame_number);
+	/*
+	 * Removes the block of given page number from the TLB
+	 * i.e. set validity of that block to false
+	 */
+	Block remove_block(uint64_t page_number);
 };
 
 TLB::TLB(unsigned int tlb_size, unsigned int num_ways)
-{ 
+{
 	this->num_sets = tlb_size / num_ways;
 	this->sets = new Set *[this->num_sets];
 	for (unsigned int i = 0; i < this->num_sets; i++)
@@ -59,6 +65,12 @@ uint64_t TLB::get_frame_number(uint64_t page_number)
 {
 	unsigned int index = this->get_index_of_set(page_number);
 	return this->sets[index]->get_frame_number(page_number);
+}
+
+Block TLB::remove_block(uint64_t page_number)
+{
+	unsigned int index = this->get_index_of_set(page_number);
+	return this->sets[index]->remove_block(page_number);
 }
 
 Block TLB::insert_block(uint64_t page_number, uint64_t frame_number)
