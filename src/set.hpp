@@ -12,6 +12,8 @@ class Set
 private:
 	Block **blocks;
 	unsigned int ways;
+	
+	/* No of blocks installed in a set */
 	unsigned int used;
 	Timer<uint64_t> timer;
 
@@ -77,7 +79,7 @@ uint64_t Set::get_frame_number(uint64_t page_number)
 
 	for (unsigned int i = 0; i < this->ways; i++)
 	{
-		if (this->blocks[i]->get_block_validity() && 
+		if (this->blocks[i]->get_block_validity() &&
 		    this->blocks[i]->get_page_number() == page_number) /* tag match */
 		{
 			block = this->blocks[i];

@@ -29,8 +29,8 @@ private:
 	/* Returns page/frame number from address */
 	uint64_t get_index(uint64_t address);
 
-	/* Returns address from page number and virtual address  */
-	uint64_t get_address(uint64_t pn, uint64_t va);
+	/* Returns physical address from frame number and virtual address  */
+	uint64_t get_address(uint64_t fn, uint64_t va);
 
 public:
 	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
@@ -78,9 +78,9 @@ uint64_t TLBController::get_index(uint64_t address)
 	return address / this->pageSize;
 }
 
-uint64_t TLBController::get_address(uint64_t pn, uint64_t va)
+uint64_t TLBController::get_address(uint64_t fn, uint64_t va)
 {
-	return (pn * this->pageSize) + (va % this->pageSize);
+	return (fn * this->pageSize) + (va % this->pageSize);
 }
 
 uint64_t TLBController::get_pa_from_va(uint64_t va)

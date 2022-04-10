@@ -12,6 +12,10 @@ private:
 
 	unsigned int get_index_of_set(uint64_t page_number);
 public:
+	/*
+	 * @param tlb_size Number of blocks in the TLB
+	 * @param num_ways Number of blocks in a set
+	 */
 	TLB(unsigned int tlb_size, unsigned int num_ways);
 	~TLB();
 
@@ -28,7 +32,7 @@ public:
 };
 
 TLB::TLB(unsigned int tlb_size, unsigned int num_ways)
-{
+{ 
 	this->num_sets = tlb_size / num_ways;
 	this->sets = new Set *[this->num_sets];
 	for (unsigned int i = 0; i < this->num_sets; i++)
