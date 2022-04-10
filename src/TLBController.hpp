@@ -13,15 +13,18 @@
 class TLBController
 {
 private:
-	TLB *tlb;
+	TLB **tlb;
 	PageTable *pageTable;
 
 	unsigned int pageSize;
+	unsigned int no_of_levels = 2;
 
 	std::ofstream outfile;
 
 	/* TLB Statistics */
-	uint64_t total_miss = 0, total_hit = 0;
+	uint64_t total_miss_l1 = 0, total_hit_l1 = 0;
+	uint64_t total_miss_l2 = 0, total_hit_l2 = 0;
+	uint64_t total_address = 0;
 
 	/* Loads value from file into page table */
 	void load_page_table(std::vector<std::pair<uint64_t, uint64_t>> &page_table_vector);
@@ -33,8 +36,8 @@ private:
 	uint64_t get_address(uint64_t fn, uint64_t va);
 
 public:
-	TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
-		      std::string outputFile);
+	TLBController(unsigned int tlb_size_l1, unsigned int tlb_size_l2, unsigned int num_ways_l1,
+		      unsigned int num_ways_l2, unsigned int pageSize, std::string outputFile);
 	~TLBController();
 
 	/* Pretty print the output */
@@ -43,12 +46,16 @@ public:
 	uint64_t get_pa_from_va(uint64_t va);
 };
 
-TLBController::TLBController(unsigned int tlb_size, unsigned int num_ways, unsigned int pageSize,
-			     std::string outputFile)
+TLBController::TLBController(unsigned int tlb_size_l1, unsigned int tlb_size_l2, unsigned int num_ways_l1,
+			     unsigned int num_ways_l2, unsigned int pageSize, std::string outputFile)
 {
 	this->pageSize = pageSize;
 
-	this->tlb = new TLB(tlb_size, num_ways);
+	this->tlb = new TLB *[this->no_of_levels];
+
+	this->tlb[0] = new TLB(tlb_size_l1, num_ways_l1);
+	this->tlb[1] = new TLB(tlb_size_l2, num_ways_l2);
+
 	this->pageTable = new PageTable();
 
 	this->outfile.open(outputFile);
@@ -56,7 +63,12 @@ TLBController::TLBController(unsigned int tlb_size, unsigned int num_ways, unsig
 
 TLBController::~TLBController()
 {
-	delete this->tlb;
+	for (unsigned int i = 0; i < no_of_levels; i++)
+	{
+		delete this->tlb[i];
+	}
+
+	delete[] this->tlb;
 	delete this->pageTable;
 
 	this->outfile.close();
@@ -85,57 +97,65 @@ uint64_t TLBController::get_address(uint64_t fn, uint64_t va)
 
 uint64_t TLBController::get_pa_from_va(uint64_t va)
 {
+	this->total_address++;
 	/* gets page number from virtual address */
 	uint64_t pn = this->get_index(va);
 	/* get frame number from page number from the TLB */
-	uint64_t fn = this->tlb->get_frame_number(pn);
+	uint64_t fn = this->tlb[0]->get_frame_number(pn);
 
 	std::string output = "";
 	output += "VA: " + to_hex(va) + "\t";
 
-	/* TLB miss */
+	Block evicted_block;
+
+	/* If it's a miss in L1 TLB */
 	if (fn == BLOCK_NOT_FOUND)
 	{
-		this->total_miss++;
-		/* get frame number from page number using dummy function for page table */
-		fn = this->pageTable->get_frame_number_short(pn);
+		output += "L1 miss\t";
+		this->total_miss_l1++;
 
-		if (fn == PAGE_FAULT)
+		/* Search in L2 TLB */
+		fn = this->tlb[1]->get_frame_number(pn);
+
+		/* If it's a miss in L2 TLB */
+		if (fn == BLOCK_NOT_FOUND)
 		{
-			output = "";
-			output = "Page Fault for VA: " + to_hex(va);
-			std::cerr << output << std::endl;
-			this->outfile << output << std::endl;
-			/* PAGE_FAULT */
-			return fn;
+			output += "L2 miss\t";
+			this->total_miss_l2++;
+			
+			/* Search in page table */
+			fn = this->pageTable->get_frame_number_short(pn);
+
+			/* Insert the block found in page table in L1 TLB  */
+			evicted_block = this->tlb[0]->insert_block(pn, fn);
+
+			/* If there was a block evicted from L1 TLB insert into L2 TLB */
+			if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
+				this->tlb[1]->insert_block(evicted_block.get_page_number(), evicted_block.get_frame_number());
 		}
-
-		/*
-		 * If we found the block in the page table, it needs
-		 * to be inserted into the TLB. If there exists a block
-		 * which needs to be evicted from the TLB due to capacity
-		 * constraints, store it and push into the lower level
-		 * of the TLB.
-		 */
-		Block evicted_block = this->tlb->insert_block(pn, fn);
-
-		if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
+		/* if it's a hit in L2 TLB */
+		else
 		{
-			// TODO: handle block eviction
-			// The block can be pushed to next level of cache
-		}
+			output += "L2 hit\t";
+			this->total_hit_l2++;
 
-		output += "TLB miss";
+			/* remove the block from L2 TLB and insert into L1 TLB according to exclusive cache design */
+			evicted_block = this->tlb[1]->remove_block(pn);
+			evicted_block = this->tlb[0]->insert_block(evicted_block.get_page_number(), evicted_block.get_frame_number());
+			
+			/* If there was a block evicted from L1 TLB insert into L2 TLB */
+			if (evicted_block.get_last_access() != BLOCK_NOT_ACCESSED)
+				this->tlb[1]->insert_block(evicted_block.get_page_number(), evicted_block.get_frame_number());
+		}
 	}
-	/* TLB hit */
+	/* if it's a hit in L1 TLB */
 	else
 	{
-		this->total_hit++;
-		output += "TLB hit";
+		output += "L1 hit\t";
+		this->total_hit_l1++;
 	}
 
 	this->outfile << output << std::endl;
-
 	uint64_t pa = get_address(fn, va);
 
 	return pa;
@@ -144,10 +164,13 @@ uint64_t TLBController::get_pa_from_va(uint64_t va)
 void TLBController::print_statistics()
 {
 	using namespace std;
-	cout <<  "TLB Statistics: ";
-	cout << "\n\tTotal Address: " << (this->total_hit + this->total_miss);
-	cout << "\n\tTotal Misses: " << this->total_miss;
-	cout << "\n\tTotal Hits: " << this->total_hit;
-	cout << "\n\tHit Ratio: " << ((this->total_hit * 100) / (this->total_hit + this->total_miss));
+	auto total_hit = this->total_hit_l1 + this->total_hit_l2;
+	auto total_miss = this->total_miss_l2 + this->total_miss_l1;
+
+	cout << "TLB Statistics: ";
+	cout << "\n\tTotal Address: " << this->total_address;
+	cout << "\n\tTotal Misses: " << total_miss;
+	cout << "\n\tTotal Hits: " << total_hit;
+	cout << "\n\tHit Ratio: " << ((total_hit * 100) / this->total_address);
 	cout << endl;
 }

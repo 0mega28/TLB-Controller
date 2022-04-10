@@ -106,9 +106,8 @@ int main(int argc, char **argv)
 	std::vector<uint64_t> test_VA_Vector;
 
 	readInputTraces(inputfile, test_VA_Vector);
-
 	tlbcontroller =
-	    new TLBController(TLB_SIZE, NUM_OF_WAYS, PAGE_SIZE,
+	    new TLBController(L1_TLB_SIZE, L2_TLB_SIZE, L1_NUM_OF_WAYS, L2_NUM_OF_WAYS, PAGE_SIZE,
 			      outputfile);
 
 	/* Install SIGINT handler */
