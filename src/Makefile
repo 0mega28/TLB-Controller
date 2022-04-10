@@ -9,7 +9,7 @@ OUTPUT_FILES=$(addprefix output/,$(notdir ${INPUT_FILES}))
 outfile=tlbstatistics.txt
 
 all: ${OUTPUT_FILES}
-	@sed -n '/#define/s/#define//p' config.hpp > ${outfile}
+	@sed -n '/#define/s/#define//p' config.hpp >> ${outfile}
 
 tlbcontroller: ${C_SOURCES} ${H_SOURCES}
 	$(CC) $(CFLAGS) ${C_SOURCES} -o $@
